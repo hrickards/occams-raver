@@ -51,5 +51,4 @@ def change_track(direction):
 		if direction == 1: print "UP"
 		else: print "DOWN"
 
-
 main()
