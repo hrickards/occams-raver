@@ -1,0 +1,6 @@
+#!/bin/bash
+IP_ADDR_BEAT=$1
+PORT_BEAT=$2
+if [ -n "$PORT_BEAT" ]; then PORT_BEAT=$PORT_BEAT ; else PORT_BEAT=8080; fi
+echo "Receiving beat data from $IP_ADDR_BEAT:$PORT_BEAT"
+nc $IP_ADDR_BEAT $PORT_BEAT | ./process.py

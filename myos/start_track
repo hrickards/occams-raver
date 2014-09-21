@@ -1,0 +1,6 @@
+#!/bin/sh
+IP_ADDR=`ipconfig getifaddr en0`
+PORT=$1
+if [ -n "$PORT" ]; then PORT=$PORT ; else PORT=8080; fi
+echo "Sending track data from $IP_ADDR:$PORT"
+./track | nc -l $IP_ADDR $PORT
