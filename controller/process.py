@@ -85,6 +85,10 @@ class Track:
 		if len(self.data) < offset: return False
 		else: return sum(map(lambda x: x > LOWER_THRESHOLD, self.data[-(offset+1):-1])) < offset*FINISHED_RATE
 
+	def sound_needed(self):
+		time_delta = time.time() - self.last_played_autobeat
+		return (self.time_period <= 0) or (time_delta >= self.time_period)
+
 	# Tiny state machine
 	def next_measurement(self, datum):
 		self.data.append(datum)
@@ -95,7 +99,7 @@ class Track:
 				self.current_state = BEATS_STATE
 				self.play_manual()
 
-			elif self.should_move_to_finished_state():
+			elif self.should_move_to_finished_state() and self.sound_needed():
 				self.puts("Finished")
 				self.current_state = FINISHED_STATE
 				self.puts(self.time_period)
