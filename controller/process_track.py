@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from sys import stdin
+from os import system
 import time
-
 TRACK = 3
 NUM_TRACKS = 5
 
@@ -44,6 +44,7 @@ def change_track(direction):
 		PREVIOUS_TIMESTAMP = current_timestamp
 		
 		TRACK = (TRACK + direction) % NUM_TRACKS
+		system("terminal-notifier -message \"Switching to Track %d\"" % TRACK)
 		f = open('track_info', 'wb')
 		f.write(str(TRACK))
 		f.close()

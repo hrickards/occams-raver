@@ -27,6 +27,18 @@ def main():
 		if new_track != current_track: tracks[current_track].force_finished()
 		current_track = new_track
 
+		# Harmonise frequencies of all non-current tracks
+		time_periods = [tracks[i].time_period for i in range(NUM_TRACKS) if i != current_track]
+		time_periods = [period for period in time_periods if period > 0]
+		if len(time_periods) > 0:
+			base_period = max(time_periods)
+			for i in range(NUM_TRACKS):
+				if i != current_track:
+					tp = tracks[i].time_period
+					current_multiplier = tp / base_period
+					new_multiplier = round(current_multiplier)
+					tracks[i].time_period = new_multiplier * base_period
+
 		# Play all tracks
 		tracks[current_track].next_measurement(float(line))
 		for i in range(NUM_TRACKS):
@@ -36,8 +48,8 @@ def main():
 WAIT_STATE = 0
 BEATS_STATE = 1
 FINISHED_STATE = 2
-UPPER_THRESHOLD = 1.1
-LOWER_THRESHOLD = 1.1
+UPPER_THRESHOLD = 1.3
+LOWER_THRESHOLD = 1.3
 FINISHED_MULTIPLIER = 40
 FINISHED_RATE = 0.01 * 0.1
 N = 50
@@ -81,21 +93,18 @@ class Track:
 			if self.should_move_to_beats_state():
 				self.puts("Beat")
 				self.current_state = BEATS_STATE
-				self.previous_last_played_manualbeat = self.last_played_manualbeat
-				self.last_played_manualbeat = time.time()
-				self.play()
+				self.play_manual()
 
 			elif self.should_move_to_finished_state():
 				self.puts("Finished")
 				self.current_state = FINISHED_STATE
-				self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
 				self.puts(self.time_period)
 
 		elif self.current_state == FINISHED_STATE:
 			if self.should_move_to_beats_state():
 				self.puts("Beat")
 				self.current_state = BEATS_STATE
-				self.play()
+				self.play_manual()
 
 			else:
 				# We're staying in FINISHED_STATE, so we should carry on playing a beat at the speed last recorded
@@ -109,6 +118,12 @@ class Track:
 	def puts(self, msg):
 		print "%d: %s" % (self.track, msg)
 
+	def play_manual(self):
+		self.previous_last_played_manualbeat = self.last_played_manualbeat
+		self.last_played_manualbeat = time.time()
+		self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
+		self.play()
+
 	def play_auto(self):
 		time_delta = time.time() - self.last_played_autobeat
 		if self.time_period > 0 and time_delta > self.time_period:
@@ -118,7 +133,6 @@ class Track:
 
 	def force_finished(self):
 		self.current_state = FINISHED_STATE
-		self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
 		self.puts(self.time_period)
 
 	def play(self):
@@ -131,7 +145,6 @@ class Track:
 			self.last_sound = FIRST_SOUND
 
 	def high_frequency(self):
-		self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
 		frequency = 1.0/self.time_period
 		return (frequency > HIGH_FREQUENCY_THRESHOLD)
 
