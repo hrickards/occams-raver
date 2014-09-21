@@ -8,6 +8,7 @@ import time
 from subprocess import Popen
 from time import sleep
 import random
+import math
 
 NUM_TRACKS = 5
 
@@ -33,11 +34,20 @@ def main():
 		if len(time_periods) > 0:
 			base_period = max(time_periods)
 			for i in range(NUM_TRACKS):
-				if i != current_track:
+				if i != current_track or (i == current_track and tracks[i].current_state == FINISHED_STATE and tracks[i].time_period < base_period):
 					tp = tracks[i].time_period
-					current_multiplier = tp / base_period
-					new_multiplier = round(current_multiplier)
-					tracks[i].time_period = new_multiplier * base_period
+					if tp == 0: continue
+					current_multiplier = base_period / tp
+					new_multiplier = int(math.ceil(current_multiplier))
+					if current_multiplier != new_multiplier:
+						tracks[i].time_period = base_period / new_multiplier
+						print ""
+						print "timeperiods" + str(time_periods)
+						print "baseperiod    : %.2f" % base_period
+						print "timeperiod old: %.2f" % tp
+						print "multiplier old: %.2f" % current_multiplier
+						print "multiplier new: %.2f" % new_multiplier
+						print "timeperiod new: %.2f" % tracks[i].time_period
 
 		# Play all tracks
 		tracks[current_track].next_measurement(float(line))
@@ -69,6 +79,7 @@ class Track:
 		self.previous_last_played_manualbeat = 0
 		self.track = track
 		self.last_sound = FIRST_SOUND
+		self.high_frequency = False
 
 	def should_move_to_beats_state(self):
 		last_n = self.data[-N-1:-1]
@@ -120,18 +131,21 @@ class Track:
 				self.current_state = WAIT_STATE
 
 	def puts(self, msg):
-		print "%d: %s" % (self.track, msg)
+		return True
+		# print "%d: %s" % (self.track, msg)
 
 	def play_manual(self):
 		self.previous_last_played_manualbeat = self.last_played_manualbeat
 		self.last_played_manualbeat = time.time()
 		self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
+		print "UPDATING TIME PERIOD %d" % self.track
+		self.update_high_frequency()
 		self.play()
 
 	def play_auto(self):
 		time_delta = time.time() - self.last_played_autobeat
 		if self.time_period > 0 and time_delta > self.time_period:
-			print "%d play_auto" % self.track
+			self.puts("play_auto")
 			self.play()
 			self.last_played_autobeat = time.time()
 
@@ -140,17 +154,16 @@ class Track:
 		self.puts(self.time_period)
 
 	def play(self):
-		print "Play"
-		if self.last_sound == FIRST_SOUND and self.high_frequency():
+		if self.last_sound == FIRST_SOUND and self.high_frequency:
 			play_sound("track%db" % self.track)
 			self.last_sound = SECOND_SOUND
 		else:
 			play_sound("track%da" % self.track)
 			self.last_sound = FIRST_SOUND
 
-	def high_frequency(self):
+	def update_high_frequency(self):
 		frequency = 1.0/self.time_period
-		return (frequency > HIGH_FREQUENCY_THRESHOLD)
+		self.high_frequency = (frequency > HIGH_FREQUENCY_THRESHOLD)
 
 
 def play_sound(fname):
