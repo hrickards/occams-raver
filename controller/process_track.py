@@ -22,15 +22,30 @@ def main():
 		change_track(direction)
 
 PITCH_THRESHOLD = 0.5
+YAW_THRESHOLD = 1.2
 # Returns 0 for nothing, 1 for track up and 0 for track down
 def process_line(line):
-	if line == "neutral": return 0
-	roll, pitch, yaw = map(float, line.split(","))
+	if line[0:7] == "neutral":
+		neutral, roll, pitch, yaw = line.split(",")
+		yaw = float(yaw)
+		if yaw > YAW_THRESHOLD:
+			print "RECORD"
+			f = open('mode_info', 'wb')
+			f.write("record")
+			f.close()
+		else:
+			f = open('mode_info', 'wb')
+			f.write("listen")
+			f.close()
+			print "LISTEN"
 
-	if abs(pitch) < PITCH_THRESHOLD: return 0
+	else:
+		roll, pitch, yaw = map(float, line.split(","))
 
-	if pitch > 0: return -1
-	else: return 1
+		if abs(pitch) < PITCH_THRESHOLD: return 0
+
+		if pitch > 0: return -1
+		else: return 1
 
 PREVIOUS_TIMESTAMP = 0
 MIN_TIME_DELTA = 1

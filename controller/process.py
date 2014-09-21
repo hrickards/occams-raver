@@ -10,7 +10,9 @@ from time import sleep
 import random
 import math
 
-NUM_TRACKS = 5
+NUM_TRACKS = 25
+RECORD_MODE = 0
+LISTEN_MODE = 1
 
 def main():
 	current_track = 0
@@ -24,9 +26,18 @@ def main():
 		if len(line) == 0: next
 
 		# Switch tracks
-		new_track = int(open("track_info", "rb").read())
+		new_track_str = open("track_info", "rb").read()
+		if new_track_str == "": continue
+		new_track = int(new_track_str)
 		if new_track != current_track: tracks[current_track].force_finished()
 		current_track = new_track
+
+		# Switch modes
+		mode = open("mode_info", "rb").read().rstrip()
+		if mode == "record":
+			mode = RECORD_MODE
+		else:
+			mode = LISTEN_MODE
 
 		# Harmonise frequencies of all non-current tracks
 		time_periods = [tracks[i].time_period for i in range(NUM_TRACKS) if i != current_track]
@@ -50,7 +61,7 @@ def main():
 						print "timeperiod new: %.2f" % tracks[i].time_period
 
 		# Play all tracks
-		tracks[current_track].next_measurement(float(line))
+		tracks[current_track].next_measurement(float(line), mode)
 		for i in range(NUM_TRACKS):
 			if i != current_track: 
 				tracks[i].play_auto()
@@ -82,6 +93,7 @@ class Track:
 		self.high_frequency = False
 
 	def should_move_to_beats_state(self):
+		if len(self.data) < 5: return False
 		last_n = self.data[-N-1:-1]
 		over_threshold = map(lambda x: x < UPPER_THRESHOLD, last_n)
 		return sum(over_threshold) == 0
@@ -101,14 +113,14 @@ class Track:
 		return (self.time_period <= 0) or (time_delta >= self.time_period)
 
 	# Tiny state machine
-	def next_measurement(self, datum):
+	def next_measurement(self, datum, mode):
 		self.data.append(datum)
 
 		if self.current_state == WAIT_STATE:
 			if self.should_move_to_beats_state():
 				self.puts("Beat")
 				self.current_state = BEATS_STATE
-				self.play_manual()
+				self.play_manual(mode)
 
 			elif self.should_move_to_finished_state() and self.sound_needed():
 				self.puts("Finished")
@@ -119,7 +131,7 @@ class Track:
 			if self.should_move_to_beats_state():
 				self.puts("Beat")
 				self.current_state = BEATS_STATE
-				self.play_manual()
+				self.play_manual(mode)
 
 			else:
 				# We're staying in FINISHED_STATE, so we should carry on playing a beat at the speed last recorded
@@ -134,12 +146,13 @@ class Track:
 		return True
 		# print "%d: %s" % (self.track, msg)
 
-	def play_manual(self):
-		self.previous_last_played_manualbeat = self.last_played_manualbeat
-		self.last_played_manualbeat = time.time()
-		self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
-		print "UPDATING TIME PERIOD %d" % self.track
-		self.update_high_frequency()
+	def play_manual(self, mode):
+		if mode == RECORD_MODE:
+			self.previous_last_played_manualbeat = self.last_played_manualbeat
+			self.last_played_manualbeat = time.time()
+			self.time_period = self.last_played_manualbeat - self.previous_last_played_manualbeat
+			print "UPDATING TIME PERIOD %d" % self.track
+			self.update_high_frequency()
 		self.play()
 
 	def play_auto(self):

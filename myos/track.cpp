@@ -78,7 +78,12 @@ public:
 					std::cout << ",";
 					std::cout << std::to_string(yaw);
 				} else {
-					std::cout << "neutral";
+					std::cout << "neutral,";
+					std::cout << std::to_string(roll);
+					std::cout << ",";
+					std::cout << std::to_string(pitch);
+					std::cout << ",";
+					std::cout << std::to_string(yaw);
 				}
 				std::cout << std::endl;
 				std::cout << std::flush;
