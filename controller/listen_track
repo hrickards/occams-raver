@@ -1,0 +1,6 @@
+#!/bin/bash
+IP_ADDR_TRACK=$1
+PORT_TRACK=$2
+if [ -n "$PORT_TRACK" ]; then PORT_TRACK=$PORT_TRACK ; else PORT_TRACK=8080; fi
+echo "Receiving track data from $IP_ADDR_TRACK:$PORT_TRACK"
+nc $IP_ADDR_TRACK $PORT_TRACK | ./process_track.py
