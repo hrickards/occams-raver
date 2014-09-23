@@ -1,0 +1,19 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/sup.cs">
+    <Files>
+      <File FileName="Assets/sup.cs" Line="37" Column="13" />
+      <File FileName="Assets/OVR/Editor/OVRPlayerControllerEditor.cs" Line="1" Column="1" />
+      <File FileName="Assets/OVR/Editor/OVRDeviceEditor.cs" Line="1" Column="1" />
+      <File FileName="Assets/OVR/Editor/OVRCameraControllerEditor.cs" Line="1" Column="1" />
+      <File FileName="Assets/OVR/Editor/OVRBuild.cs" Line="1" Column="1" />
+      <File FileName="Assets/OVR/Editor/OVREditorGUIUtility.cs" Line="1" Column="1" />
+      <File FileName="Assets/supb.cs" Line="1" Column="1" />
+      <File FileName="Assets/supr.cs" Line="56" Column="5" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
